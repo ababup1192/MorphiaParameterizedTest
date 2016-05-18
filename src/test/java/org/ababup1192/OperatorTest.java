@@ -9,10 +9,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.query.Query;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
@@ -20,184 +16,49 @@ import static org.junit.Assert.assertThat;
 public class OperatorTest {
     private static final String DATA_STORE_NAME = "parameterized";
 
+    @Before
+    public void preProcess() throws Exception {
+        final Morphia morphia = new Morphia();
 
-    public static class SmallDataSetTest {
+        MongoClient mongoClient = new MongoClient();
+        mongoClient.dropDatabase(DATA_STORE_NAME);
 
-        private static final int NUM_OF_DATA_SET = 100;
+        final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
 
-        @Before
-        public void preProcess() throws Exception {
-            final Morphia morphia = new Morphia();
-
-            MongoClient mongoClient = new MongoClient();
-            mongoClient.dropDatabase(DATA_STORE_NAME);
-
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-
-            List<Entity> entities1 = new ArrayList<>();
-            List<Entity> entities2 = new ArrayList<>();
-            List<Entity> entities3 = new ArrayList<>();
-
-            for (int i = 0; i < NUM_OF_DATA_SET; i++) {
-                entities1.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET; i < NUM_OF_DATA_SET * 2; i++) {
-                entities2.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET * 2; i < NUM_OF_DATA_SET * 3; i++) {
-                entities3.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            datastore.save(new EntityGroup(entities1));
-            datastore.save(new EntityGroup(entities2));
-            datastore.save(new EntityGroup(entities3));
-        }
-
-        @Test
-        public void testSelect() {
-            final Morphia morphia = new Morphia();
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-            final Query<EntityGroup> query = datastore.createQuery(EntityGroup.class)
-                    .filter("entities.id.value >", NUM_OF_DATA_SET);
-
-            assertThat(query.asList().size(), is(2));
-        }
+        // BaseParameterを継承しているものなら何でも代入可能
+        datastore.save(new Entity(new IntegerParameter(1)));
+        datastore.save(new Entity(new StringParameter("abc")));
+        datastore.save(new Entity(new BooleanParameter(true)));
     }
 
-    public static class MiddleDataSetTest {
+    @Test
+    public void testSelectIntegerEntity() {
+        final Morphia morphia = new Morphia();
+        final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
+        // 比較もパラメーターに合わせて比較可能
+        final Query<Entity> query = datastore.createQuery(Entity.class)
+                .filter("base.value", 1);
 
-        private static final int NUM_OF_DATA_SET = 10000;
-
-        @Before
-        public void preProcess() throws Exception {
-            final Morphia morphia = new Morphia();
-
-            MongoClient mongoClient = new MongoClient();
-            mongoClient.dropDatabase(DATA_STORE_NAME);
-
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-
-            List<Entity> entities1 = new ArrayList<>();
-            List<Entity> entities2 = new ArrayList<>();
-            List<Entity> entities3 = new ArrayList<>();
-
-            for (int i = 0; i < NUM_OF_DATA_SET; i++) {
-                entities1.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET; i < NUM_OF_DATA_SET * 2; i++) {
-                entities2.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET * 2; i < NUM_OF_DATA_SET * 3; i++) {
-                entities3.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            datastore.save(new EntityGroup(entities1));
-            datastore.save(new EntityGroup(entities2));
-            datastore.save(new EntityGroup(entities3));
-        }
-
-        @Test
-        public void testSelect() {
-            final Morphia morphia = new Morphia();
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-            final Query<EntityGroup> query = datastore.createQuery(EntityGroup.class)
-                    .filter("entities.id.value >", NUM_OF_DATA_SET);
-
-            assertThat(query.asList().size(), is(2));
-        }
+        assertThat(query.asList().get(0), is(new Entity(new IntegerParameter(1))));
     }
 
-    public static class LargeDataSetTest {
+    @Test
+    public void testSelectStringEntity() {
+        final Morphia morphia = new Morphia();
+        final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
+        final Query<Entity> query = datastore.createQuery(Entity.class)
+                .filter("base.value", "abc");
 
-        private static final int NUM_OF_DATA_SET = 50000;
+        assertThat(query.asList().get(0), is(new Entity(new StringParameter("abc"))));
+    }
 
-        @Before
-        public void preProcess() throws Exception {
-            final Morphia morphia = new Morphia();
+    @Test
+    public void testSelectBooleanEntity() {
+        final Morphia morphia = new Morphia();
+        final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
+        final Query<Entity> query = datastore.createQuery(Entity.class)
+                .filter("base.value", true);
 
-            MongoClient mongoClient = new MongoClient();
-            mongoClient.dropDatabase(DATA_STORE_NAME);
-
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-
-            List<Entity> entities1 = new ArrayList<>();
-            List<Entity> entities2 = new ArrayList<>();
-            List<Entity> entities3 = new ArrayList<>();
-
-            for (int i = 0; i < NUM_OF_DATA_SET; i++) {
-                entities1.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET; i < NUM_OF_DATA_SET * 2; i++) {
-                entities2.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            for (int i = NUM_OF_DATA_SET * 2; i < NUM_OF_DATA_SET * 3; i++) {
-                entities3.add(new Entity(
-                                new IntegerParameter(i + 1, 1, false, new Date(), new Date()),
-                                new StringParameter("name" + i + 1, 1, false, new Date(), new Date()),
-                                new BooleanParameter(true, 1, false, new Date(), new Date())
-                        )
-                );
-            }
-
-            datastore.save(new EntityGroup(entities1));
-            datastore.save(new EntityGroup(entities2));
-            datastore.save(new EntityGroup(entities3));
-        }
-
-        @Test
-        public void testSelect() {
-            final Morphia morphia = new Morphia();
-            final Datastore datastore = morphia.createDatastore(new MongoClient(), DATA_STORE_NAME);
-            final Query<EntityGroup> query = datastore.createQuery(EntityGroup.class)
-                    .filter("entities.id.value >", NUM_OF_DATA_SET);
-
-            assertThat(query.asList().size(), is(2));
-        }
+        assertThat(query.asList().get(0), is(new Entity(new BooleanParameter(true))));
     }
 }

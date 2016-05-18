@@ -1,13 +1,27 @@
 package org.ababup1192;
 
-import java.util.Date;
+import org.mongodb.morphia.annotations.Embedded;
 
-class StringParameter extends EntityParameter<String> {
-    StringParameter() {
+import java.util.Objects;
+
+@Embedded
+class StringParameter extends BaseParameter<String> {
+    public StringParameter(){
         super();
     }
 
-    StringParameter(String value, Integer groupId, Boolean deleteFlag, Date createTime, Date updateTime) {
-        super(value, groupId, deleteFlag, createTime, updateTime);
+    StringParameter(String value){
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object target) {
+        if (this == target) return true;
+        else if (!(target instanceof StringParameter)) {
+            return false;
+        } else {
+            StringParameter castedTarget = (StringParameter) target;
+            return Objects.equals(this.value, castedTarget.value);
+        }
     }
 }

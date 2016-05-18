@@ -1,13 +1,28 @@
 package org.ababup1192;
 
-import java.util.Date;
+import org.mongodb.morphia.annotations.Embedded;
 
-class BooleanParameter extends EntityParameter<Boolean> {
-    BooleanParameter() {
+import java.util.Objects;
+
+@Embedded
+class BooleanParameter extends BaseParameter<Boolean> {
+
+    BooleanParameter(){
         super();
     }
 
-    BooleanParameter(Boolean value, Integer groupId, Boolean deleteFlag, Date createTime, Date updateTime) {
-        super(value, groupId, deleteFlag, createTime, updateTime);
+    BooleanParameter(Boolean value){
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object target) {
+        if (this == target) return true;
+        else if (!(target instanceof BooleanParameter)) {
+            return false;
+        } else {
+            BooleanParameter castedTarget = (BooleanParameter) target;
+            return Objects.equals(this.value, castedTarget.value);
+        }
     }
 }

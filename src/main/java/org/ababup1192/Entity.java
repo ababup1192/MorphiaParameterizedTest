@@ -6,22 +6,18 @@ import java.util.Objects;
 
 @org.mongodb.morphia.annotations.Entity("entity")
 @Embedded
+// このクラスはジェネリクスを持ってはいけない(morphiaが cast error を起こす)
 class Entity {
+    // BaseParameterに型パラメータ(Tなど)を渡してはいけない。
+    // 必ずraw type もしくは決め打ちの型パラメータを渡す
     @Embedded
-    private IntegerParameter id;
-    @Embedded
-    private StringParameter name;
-    @Embedded
-    private BooleanParameter flag;
-
+    private BaseParameter base;
 
     public Entity() {
     }
 
-    Entity(IntegerParameter id, StringParameter name, BooleanParameter flag) {
-        this.id = id;
-        this.name = name;
-        this.flag = flag;
+    Entity(BaseParameter base){
+        this.base = base;
     }
 
     public boolean equals(Object target) {
@@ -30,13 +26,11 @@ class Entity {
             return false;
         } else {
             Entity targetEntity = (Entity) target;
-            return Objects.equals(this.id, targetEntity.id) &&
-                    Objects.equals(this.name, targetEntity.name) &&
-                    Objects.equals(this.flag, targetEntity.flag);
+            return Objects.equals(this.base, targetEntity.base);
         }
     }
 
     public String toString() {
-        return "Entity(" + id + ", " + name + ", " + flag + ")";
+        return "Entity(" + base + ")";
     }
 }
